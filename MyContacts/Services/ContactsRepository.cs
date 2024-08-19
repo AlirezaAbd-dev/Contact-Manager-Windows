@@ -18,7 +18,7 @@ namespace MyContacts
             try
             {
                 string query = "DELETE FROM MyContacts WHERE id=@id;";
-                SqlCommand command = new SqlCommand(query,connection);
+                SqlCommand command = new SqlCommand(query, connection);
 
                 command.Parameters.AddWithValue("@id", contactId);
                 connection.Open();
@@ -66,6 +66,17 @@ namespace MyContacts
             }
         }
 
+        public DataTable Search(string parameter)
+        {
+            string query = "SELECT * FROM MyContacts WHERE name like @parameter";
+            SqlConnection connection = new SqlConnection(this.connectionString);
+            SqlDataAdapter adapter = new SqlDataAdapter(query, connection);
+            adapter.SelectCommand.Parameters.AddWithValue("@parameter", "%" + parameter + "%");
+            DataTable data = new DataTable();
+            adapter.Fill(data);
+            return data;
+        }
+
         public DataTable SelecteAll()
         {
             string query = "SELECT * FROM MyContacts";
@@ -95,7 +106,7 @@ namespace MyContacts
                 string query = "UPDATE MyContacts SET name=@name,age=@age, email=@email, mobile=@mobile, address=@address  WHERE id=@id;";
                 SqlCommand command = new SqlCommand(query, connection);
 
-                command.Parameters.AddWithValue("@id",contactId);
+                command.Parameters.AddWithValue("@id", contactId);
                 command.Parameters.AddWithValue("@name", name);
                 command.Parameters.AddWithValue("@mobile", mobile);
                 command.Parameters.AddWithValue("@email", email);
@@ -106,7 +117,8 @@ namespace MyContacts
                 command.ExecuteNonQuery();
 
                 return true;
-            }catch
+            }
+            catch
             {
                 return false;
             }
