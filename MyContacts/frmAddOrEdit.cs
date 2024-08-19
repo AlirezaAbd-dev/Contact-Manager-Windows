@@ -13,6 +13,7 @@ namespace MyContacts
     public partial class frmAddOrEdit : Form
     {
         IContactsRepository repository;
+        public int contactId = 0;
 
         public frmAddOrEdit()
         {
@@ -22,15 +23,29 @@ namespace MyContacts
 
         private void frmAddOrEdit_Load(object sender, EventArgs e)
         {
-            this.Text = "افزودن شخص جدید";
+            if (contactId == 0)
+            {
+                this.Text = "افزودن شخص جدید";
+            }
+            else
+            {
+                this.Text = "ویرایش شخص";
+                DataTable dt = repository.SelectRow(contactId);
+                txtName.Text = dt.Rows[0][1].ToString();
+                txtAge.Text = dt.Rows[0][2].ToString();
+                txtEmail.Text = dt.Rows[0][3].ToString();
+                txtMobile.Text = dt.Rows[0][4].ToString();
+                txtAddress.Text = dt.Rows[0][5].ToString();
+                btnSubmit.Text = "ویرایش";
+            }
         }
 
         bool ValidateInputs()
         {
 
-            if(txtName.Text == "")
+            if (txtName.Text == "")
             {
-                MessageBox.Show("لطفا نام را وارد کنید","هشدار", MessageBoxButtons.OK,MessageBoxIcon.Error);
+                MessageBox.Show("لطفا نام را وارد کنید", "هشدار", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
             }
             if (txtEmail.Text == "")
@@ -48,12 +63,6 @@ namespace MyContacts
                 MessageBox.Show("لطفا موبایل را وارد کنید", "هشدار", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
             }
-            if (txtAddress.Text == "")
-            {
-                MessageBox.Show("لطفا آدرس را وارد کنید", "هشدار", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return false;
-            }
-
 
             return true;
         }
@@ -62,9 +71,16 @@ namespace MyContacts
         {
             if (ValidateInputs())
             {
-                bool isSuccess = repository.Insert(txtName.Text, txtMobile.Text, txtEmail.Text, (int)txtAge.Value, txtAddress.Text);
+                bool isSuccess;
+                if(contactId == 0)
+                {
+                isSuccess = repository.Insert(txtName.Text, txtMobile.Text, txtEmail.Text, (int)txtAge.Value, txtAddress.Text);
+                }else
+                {
+                    isSuccess = repository.Update(contactId, txtName.Text, txtMobile.Text, txtEmail.Text, (int)txtAge.Value, txtAddress.Text);
+                }
 
-                if(isSuccess == true)
+                if (isSuccess == true)
                 {
                     MessageBox.Show("عملیات با موفقیت انجام شد", "موفقیت", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     DialogResult = DialogResult.OK;
@@ -72,7 +88,7 @@ namespace MyContacts
                 }
                 else
                 {
-                    MessageBox.Show("عملیات با شکست مواجه شد","خطا",MessageBoxButtons.OK,MessageBoxIcon.Error);
+                    MessageBox.Show("عملیات با شکست مواجه شد", "خطا", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }

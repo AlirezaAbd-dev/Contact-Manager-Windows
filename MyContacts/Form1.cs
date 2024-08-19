@@ -39,9 +39,43 @@ namespace MyContacts
         {
             frmAddOrEdit frm = new frmAddOrEdit();
             frm.ShowDialog();
-            if(frm.DialogResult == DialogResult.OK)
+            if (frm.DialogResult == DialogResult.OK)
             {
                 BindGrid();
+            }
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            if (dgContacts.CurrentRow != null)
+            {
+                if(MessageBox.Show($"آیا از حذف {dgContacts.CurrentRow.Cells[1].Value.ToString()} مطمئن هستید؟","توجه",MessageBoxButtons.YesNo) == DialogResult.Yes)
+                {
+                    bool isSuccess = repository.Delete(Convert.ToInt32(dgContacts.CurrentRow.Cells[0].Value));
+
+                    if (isSuccess)
+                    {
+                        BindGrid();
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show("لطفا یک شخص را از لیست انتخاب کنید");
+            }
+        }
+
+        private void btnEdit_Click(object sender, EventArgs e)
+        {
+            if(dgContacts.CurrentRow != null)
+            {
+                int contactId = int.Parse(dgContacts.CurrentRow.Cells[0].Value.ToString());
+                frmAddOrEdit frm = new frmAddOrEdit();
+                frm.contactId = contactId;
+                if(frm.ShowDialog() == DialogResult.OK)
+                {
+                    BindGrid();
+                }
             }
         }
     }
