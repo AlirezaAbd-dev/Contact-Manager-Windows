@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Data.Entity;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -12,13 +13,14 @@ namespace MyContacts
 {
     public partial class frmAddOrEdit : Form
     {
+        ContactsEntities db = new ContactsEntities();
+
         IContactsRepository repository;
         public int contactId = 0;
 
         public frmAddOrEdit()
         {
             InitializeComponent();
-            repository = new ContactsRepository();
         }
 
         private void frmAddOrEdit_Load(object sender, EventArgs e)
@@ -30,12 +32,12 @@ namespace MyContacts
             else
             {
                 this.Text = "ویرایش شخص";
-                DataTable dt = repository.SelectRow(contactId);
-                txtName.Text = dt.Rows[0][1].ToString();
-                txtAge.Text = dt.Rows[0][2].ToString();
-                txtEmail.Text = dt.Rows[0][3].ToString();
-                txtMobile.Text = dt.Rows[0][4].ToString();
-                txtAddress.Text = dt.Rows[0][5].ToString();
+                MyContact contact = db.MyContacts.Find(contactId);
+                txtName.Text = contact.name;
+                txtAge.Text = contact.age.ToString();
+                txtEmail.Text = contact.email;
+                txtMobile.Text = contact.mobile;
+                txtAddress.Text = contact.address;
                 btnSubmit.Text = "ویرایش";
             }
         }
@@ -71,25 +73,29 @@ namespace MyContacts
         {
             if (ValidateInputs())
             {
-                bool isSuccess;
-                if(contactId == 0)
+                if (contactId == 0)
                 {
-                isSuccess = repository.Insert(txtName.Text, txtMobile.Text, txtEmail.Text, (int)txtAge.Value, txtAddress.Text);
-                }else
-                {
-                    isSuccess = repository.Update(contactId, txtName.Text, txtMobile.Text, txtEmail.Text, (int)txtAge.Value, txtAddress.Text);
-                }
-
-                if (isSuccess == true)
-                {
-                    MessageBox.Show("عملیات با موفقیت انجام شد", "موفقیت", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    DialogResult = DialogResult.OK;
-
+                MyContact contact = new MyContact();
+                    contact.name = txtName.Text;
+                    contact.address = txtAddress.Text;
+                    contact.mobile = txtMobile.Text;
+                    contact.age = (int)txtAge.Value;
+                    contact.email = txtEmail.Text;
+                    db.MyContacts.Add(contact);
                 }
                 else
                 {
-                    MessageBox.Show("عملیات با شکست مواجه شد", "خطا", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    var contact = db.MyContacts.Find(contactId);
+                    contact.name = txtName.Text;    
+                    contact.address = txtAddress.Text;
+                    contact.email= txtEmail.Text;
+                    contact.age= (int)txtAge.Value;
+                    contact.mobile= txtMobile.Text;
                 }
+                db.SaveChanges();
+
+                MessageBox.Show("عملیات با موفقیت انجام شد", "موفقیت", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                DialogResult = DialogResult.OK;
             }
         }
     }

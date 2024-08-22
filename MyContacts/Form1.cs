@@ -12,11 +12,10 @@ namespace MyContacts
 {
     public partial class Form1 : Form
     {
-        IContactsRepository repository;
+        private readonly ContactsEntities db = new ContactsEntities();
         public Form1()
         {
             InitializeComponent();
-            repository = new ContactsRepository();
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -26,8 +25,11 @@ namespace MyContacts
 
         private void BindGrid()
         {
-            dgContacts.AutoGenerateColumns = false;
-            dgContacts.DataSource = repository.SelecteAll();
+            using (ContactsEntities db = new ContactsEntities())
+            {
+                dgContacts.AutoGenerateColumns = false;
+                dgContacts.DataSource = db.MyContacts.ToList();
+            }
         }
 
         private void btnRefresh_Click(object sender, EventArgs e)
@@ -45,18 +47,23 @@ namespace MyContacts
             }
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void btnDelete_Click(object sender, EventArgs e)
         {
             if (dgContacts.CurrentRow != null)
             {
-                if(MessageBox.Show($"آیا از حذف {dgContacts.CurrentRow.Cells[1].Value.ToString()} مطمئن هستید؟","توجه",MessageBoxButtons.YesNo) == DialogResult.Yes)
+                if (MessageBox.Show($"آیا از حذف {dgContacts.CurrentRow.Cells[1].Value.ToString()} مطمئن هستید؟", "توجه", MessageBoxButtons.YesNo) == DialogResult.Yes)
                 {
-                    bool isSuccess = repository.Delete(Convert.ToInt32(dgContacts.CurrentRow.Cells[0].Value));
+                    int contactId = int.Parse(dgContacts.CurrentRow.Cells[0].Value.ToString());
 
-                    if (isSuccess)
+                    using (ContactsEntities db = new ContactsEntities())
                     {
-                        BindGrid();
+                        MyContact contact = db.MyContacts.Single(c => c.id == contactId);
+                        db.MyContacts.Remove(contact);
+
+                        db.SaveChanges();
                     }
+
+                    BindGrid();
                 }
             }
             else
@@ -67,12 +74,12 @@ namespace MyContacts
 
         private void btnEdit_Click(object sender, EventArgs e)
         {
-            if(dgContacts.CurrentRow != null)
+            if (dgContacts.CurrentRow != null)
             {
                 int contactId = int.Parse(dgContacts.CurrentRow.Cells[0].Value.ToString());
                 frmAddOrEdit frm = new frmAddOrEdit();
                 frm.contactId = contactId;
-                if(frm.ShowDialog() == DialogResult.OK)
+                if (frm.ShowDialog() == DialogResult.OK)
                 {
                     BindGrid();
                 }
@@ -81,7 +88,10 @@ namespace MyContacts
 
         private void txtSearch_TextChanged(object sender, EventArgs e)
         {
-            dgContacts.DataSource = repository.Search(txtSearch.Text);
+            using (ContactsEntities db = new ContactsEntities())
+            {
+                dgContacts.DataSource = db.MyContacts.Where(c => c.name.Contains(txtSearch.Text)).ToList();
+            }
         }
     }
 }
